@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Docente — Diego</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-mid: #5DCAA5;
+    --green-dark: #085041;
+    --amber: #EF9F27;
+    --amber-light: #FAEEDA;
+    --amber-dark: #854F0B;
+    --purple: #7F77DD;
+    --purple-light: #EEEDFE;
+    --purple-dark: #3C3489;
+    --coral: #D85A30;
+    --coral-light: #FAECE7;
+    --gray-50: #F7F6F2;
+    --gray-100: #EDECEA;
+    --gray-200: #D3D1C7;
+    --gray-400: #888780;
+    --gray-600: #5F5E5A;
+    --gray-900: #1C1C1A;
+    --text: #1C1C1A;
+    --text-muted: #5F5E5A;
+    --text-hint: #888780;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.15);
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+
+  /* LAYOUT */
+  .app-shell { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 260px;
+    background: var(--green-dark);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 10;
+  }
+
+  .sidebar-logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-logo .title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    line-height: 1.2;
+    color: white;
+  }
+  .sidebar-logo .subtitle {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+  }
+
+  .sidebar-nav { padding: 16px 12px; flex: 1; }
+  .nav-section-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.35);
+    padding: 12px 12px 6px;
+    text-transform: uppercase;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+  .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 500; }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex; gap: 8px;
+  }
+  .sidebar-footer button {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.8);
+    transition: background 0.15s;
+  }
+  .sidebar-footer button:hover { background: rgba(255,255,255,0.15); }
+
+  .main {
+    margin-left: 260px;
+    flex: 1;
+    padding: 32px;
+    max-width: calc(100vw - 260px);
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* TYPOGRAPHY */
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .page-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+  }
+  .card + .card { margin-top: 16px; }
+
+  /* METRICS GRID */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .metric-label { font-size: 12px; color: var(--text-hint); margin-bottom: 8px; }
+  .metric-value { font-size: 28px; font-weight: 300; color: var(--text); line-height: 1; }
+  .metric-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+  /* MATERIA CARDS */
+  .materias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .materia-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .materia-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--green);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s;
+  }
+  .materia-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+  .materia-card:hover::before { transform: scaleX(1); }
+  .materia-card.active-mat::before { transform: scaleX(1); }
+
+  .mat-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .mat-nombre { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.4; }
+  .mat-pct { font-size: 13px; font-weight: 500; padding: 3px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+  .pct-ok { background: var(--green-light); color: var(--green-dark); }
+  .pct-warn { background: var(--amber-light); color: var(--amber-dark); }
+  .pct-zero { background: var(--gray-100); color: var(--gray-600); }
+
+  .progress-track { height: 4px; background: var(--gray-100); border-radius: 4px; margin-bottom: 10px; }
+  .progress-fill { height: 4px; border-radius: 4px; background: var(--green); transition: width 0.5s; }
+
+  .mat-meta { font-size: 12px; color: var(--text-hint); display: flex; gap: 14px; flex-wrap: wrap; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    transition: all 0.15s;
+    font-weight: 400;
+  }
+  .btn:hover { background: var(--gray-50); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+  }
+  .btn-primary:hover { background: #0F6E56; border-color: #0F6E56; }
+  .btn-sm { font-size: 12px; padding: 6px 12px; }
+  .btn-ghost { border-color: transparent; background: transparent; }
+  .btn-ghost:hover { background: var(--gray-100); }
+
+  /* FORMS */
+  .form-group { margin-bottom: 14px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  label { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.1);
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  select[multiple] { min-height: 90px; }
+
+  /* UNIDADES */
+  .unidades-list { }
+  .unidad-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .unidad-row:last-child { border-bottom: none; }
+  .unidad-circle {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .unidad-body { flex: 1; }
+  .unidad-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .unidad-temas { font-size: 12px; color: var(--text-hint); margin-top: 3px; }
+  .unidad-clases { font-size: 13px; font-weight: 500; color: var(--green); white-space: nowrap; }
+
+  /* TAGS */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin: 2px 2px 0 0;
+    background: var(--green-light);
+    color: var(--green-dark);
+  }
+  .tag-purple { background: var(--purple-light); color: var(--purple-dark); }
+  .tag-amber { background: var(--amber-light); color: var(--amber-dark); }
+  .tag-coral { background: var(--coral-light); color: var(--coral); }
+
+  /* CLASES LIST */
+  .clase-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .clase-week {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-hint);
+    white-space: nowrap;
+    padding-top: 2px;
+    min-width: 60px;
+  }
+  .clase-body { flex: 1; }
+  .clase-tema { font-size: 14px; color: var(--text); }
+  .clase-mat { font-size: 12px; color: var(--text-hint); margin-top: 3px; }
+  .clase-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .badge-presencial { background: var(--green-light); color: var(--green-dark); }
+  .badge-virtual { background: var(--purple-light); color: var(--purple-dark); }
+  .badge-asincronica { background: var(--amber-light); color: var(--amber-dark); }
+
+  /* IA OUTPUT */
+  .ia-box {
+    background: var(--gray-50);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--text);
+    max-height: 500px;
+    overflow-y: auto;
+    margin-top: 16px;
+  }
+  .ia-box.loading { color: var(--text-hint); font-style: italic; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--green-dark);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.2s;
+    z-index: 1000;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 520px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-hint); font-size: 14px; }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; }
+
+  /* FILE INPUT HIDDEN */
+  #file-import { display: none; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar { width: 100%; position: relative; height: auto; }
+    .main { margin-left: 0; padding: 20px; max-width: 100%; }
+    .app-shell { flex-direction: column; }
+    .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="title">Panel<br>Docente</div>
+      <div class="subtitle">Gestión de cátedras</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">General</div>
+      <button class="nav-item active" onclick="showPage('resumen', this)">
+        <span class="nav-icon">◈</span> Resumen general
+      </button>
+      <button class="nav-item" onclick="showPage('materias', this)">
+        <span class="nav-icon">◻</span> Mis materias
+      </button>
+      <div class="nav-section-label">Trabajo</div>
+      <button class="nav-item" onclick="showPage('registro', this)">
+        <span class="nav-icon">+</span> Registrar clase
+      </button>
+      <button class="nav-item" onclick="showPage('detalle', this)">
+        <span class="nav-icon">≡</span> Ver detalle
+      </button>
+      <div class="nav-section-label">Herramientas</div>
+      <button class="nav-item" onclick="showPage('ia', this)">
+        <span class="nav-icon">✦</span> Generador IA
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button onclick="exportarDatos()">⬇ Exportar</button>
+      <button onclick="document.getElementById('file-import').click()">⬆ Importar</button>
+      <input type="file" id="file-import" accept=".json" onchange="importarDatos(event)">
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- RESUMEN -->
+    <div id="page-resumen" class="page active">
+      <h1 class="page-title">Buen día, Diego.</h1>
+      <p class="page-subtitle" id="resumen-fecha"></p>
+
+      <div class="metrics-grid" id="resumen-metrics"></div>
+
+      <div class="section-header">
+        <span class="section-title">Estado de materias</span>
+      </div>
+      <div class="materias-grid" id="resumen-materias"></div>
+    </div>
+
+    <!-- MATERIAS -->
+    <div id="page-materias" class="page">
+      <h1 class="page-title">Mis materias</h1>
+      <p class="page-subtitle">Administrá todas tus cátedras del cuatrimestre.</p>
+
+      <div class="section-header">
+        <span class="section-title">Cátedras activas</span>
+        <button class="btn btn-primary btn-sm" onclick="abrirModalMateria()">+ Nueva materia</button>
+      </div>
+      <div class="materias-grid" id="lista-materias-page"></div>
+    </div>
+
+    <!-- REGISTRO -->
+    <div id="page-registro" class="page">
+      <h1 class="page-title">Registrar clase</h1>
+      <p class="page-subtitle">Anotá lo que diste hoy para mantener el seguimiento actualizado.</p>
+
+      <div class="card">
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label>Materia</label>
+            <select id="reg-materia" onchange="actualizarRegUnidades()"></select>
+          </div>
+          <div class="form-group">
+            <label>Semana N°</label>
+            <input type="number" id="reg-semana" min="1" value="1">
+          </div>
+          <div class="form-group">
+            <label>Modalidad</label>
+            <select id="reg-modalidad">
+              <option value="presencial">Presencial</option>
+              <option value="virtual">Virtual sincrónica</option>
+              <option value="asincronica">Virtual asincrónica</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Unidad</label>
+            <select id="reg-unidad"></select>
+          </div>
+          <div class="form-group">
+            <label>Fecha (opcional)</label>
+            <input type="text" id="reg-fecha" placeholder="Ej: 28/04/2026">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tema/s trabajados</label>
+          <input type="text" id="reg-tema" placeholder="Ej: Competencia comunicativa, tipos de escucha">
+        </div>
+        <div class="form-group">
+          <label>Material / actividad</label>
+          <input type="text" id="reg-material" placeholder="Ej: PPT Unidad I, ficha Cassany, actividad presencial de debate">
+        </div>
+        <div class="form-group">
+          <label>Observaciones (opcional)</label>
+          <textarea id="reg-obs" placeholder="Ej: Buena participación. Quedó pendiente el tema de géneros orales."></textarea>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn btn-primary" onclick="registrarClase()">Registrar clase</button>
+          <span id="reg-ok" style="font-size:13px; color:var(--green); opacity:0; transition:opacity 0.3s;">✓ Registrado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETALLE -->
+    <div id="page-detalle" class="page">
+      <h1 class="page-title">Detalle de materia</h1>
+      <p class="page-subtitle">Seguimiento por unidad y registro cronológico de clases.</p>
+
+      <div class="form-group" style="max-width:400px; margin-bottom:24px;">
+        <label>Materia</label>
+        <select id="det-materia" onchange="renderDetalle()"></select>
+      </div>
+      <div id="detalle-body"></div>
+    </div>
+
+    <!-- IA -->
+    <div id="page-ia" class="page">
+      <h1 class="page-title">Generador IA</h1>
+      <p class="page-subtitle">Generá exámenes, tareas, cierres de unidad y rúbricas en segundos.</p>
+
+      <div class="card">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Materia</label>
+            <select id="ia-materia" onchange="actualizarIAUnidades()"></select>
+          </div>
+          <div class="form-group">
+            <label>¿Qué querés generar?</label>
+            <select id="ia-tipo">
+              <option value="examen">Examen parcial</option>
+              <option value="tarea">Consigna de tarea</option>
+              <option value="cierre">Cierre de unidad</option>
+              <option value="actividad">Actividad de clase</option>
+              <option value="rubrica">Rúbrica de evaluación</option>
+              <option value="planificacion">Planificación de clase</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Unidades involucradas (podés seleccionar varias con Ctrl)</label>
+          <select id="ia-unidades" multiple></select>
+        </div>
+        <div class="form-group">
+          <label>Indicaciones adicionales (opcional)</label>
+          <textarea id="ia-contexto" placeholder="Ej: 4 preguntas, incluir análisis de texto, modalidad escrita individual, enfocarse en escritura creativa..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="generarIA()">✦ Generar con IA</button>
+      </div>
+
+      <div id="ia-resultado-wrap" style="display:none;">
+        <div id="ia-output" class="ia-box"></div>
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; align-items:center;">
+          <button class="btn btn-sm" onclick="copiarIA()">Copiar texto</button>
+          <input type="text" id="ia-mod" placeholder="Pedí una modificación..." style="flex:1; min-width:200px;">
+          <button class="btn btn-sm btn-primary" onclick="modificarIA()">Modificar ↗</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL NUEVA MATERIA -->
+<div class="modal-overlay" id="modal-materia">
+  <div class="modal">
+    <div class="modal-title">Nueva materia</div>
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input type="text" id="m-nombre" placeholder="Ej: Matemática y su Didáctica II">
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Año / nivel</label>
+        <input type="text" id="m-nivel" placeholder="Ej: 4° año · Profesorado">
+      </div>
+      <div class="form-group">
+        <label>Semanas totales</label>
+        <input type="number" id="m-semanas" value="16" min="1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Unidades (una por línea)</label>
+      <textarea id="m-unidades" style="min-height:110px;" placeholder="Unidad I: Nombre&#10;Unidad II: Nombre&#10;Unidad III: Nombre&#10;Unidad IV: Nombre"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Temas por unidad (opcional — uno por línea, separados por | entre unidades)</label>
+      <textarea id="m-temas" placeholder="Tema 1, Tema 2, Tema 3&#10;Tema A, Tema B&#10;..." style="min-height:80px;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarMateria()">Guardar materia</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = 'panel_docente_v1';
+
+const defaultState = {
+  materias: [
+    {
+      id: 1,
+      nombre: "Didáctica de la Lengua y la Literatura Infantil y Juvenil",
+      nivel: "4° año · Profesorado EGB",
+      semanasTotales: 16,
+      unidades: [
+        { nombre: "Unidad I: Las macrohabilidades del lenguaje", temas: ["Competencia comunicativa","Escucha atenta, comprensiva, crítica","Oralidad: interacción, argumentación","Lectura: procesos cognitivos","Escritura como proceso","DCP Mendoza"] },
+        { nombre: "Unidad II: Didáctica de las macrohabilidades", temas: ["Enseñanza de la escucha","Estrategias de oralidad","Didáctica de la lectura: pre/durante/pos","Didáctica de la escritura creativa y académica","Elaboración de consignas"] },
+        { nombre: "Unidad III: Diseño en ABP", temas: ["Principios del ABP","Secuencias integradas","Articulación de macrohabilidades","Producción de materiales","Validación de secuencias"] },
+        { nombre: "Unidad IV: Evaluación y metacognición", temas: ["Evaluación de macrohabilidades","Rúbricas de escritura","Listas de cotejo de oralidad","Evaluación formativa","Metacognición docente"] }
+      ],
+      clases: []
+    }
+  ]
+};
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(defaultState));
+  } catch { return JSON.parse(JSON.stringify(defaultState)); }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  populateSelects();
+  if (name === 'resumen') renderResumen();
+  if (name === 'materias') renderMaterias();
+  if (name === 'detalle') renderDetalle();
+  if (name === 'registro') actualizarRegUnidades();
+  if (name === 'ia') actualizarIAUnidades();
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+function getMateria(id) { return state.materias.find(m => m.id == id); }
+
+function calcPct(m) {
+  if (!m.clases.length) return 0;
+  const seen = new Set(m.clases.map(c => c.unidadIdx));
+  return Math.round((seen.size / m.unidades.length) * 100);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function populateSelects() {
+  ['reg-materia','det-materia','ia-materia'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = state.materias.map(m =>
+      `<option value="${m.id}" ${m.id == prev ? 'selected' : ''}>${m.nombre}</option>`
+    ).join('');
+  });
+  actualizarRegUnidades();
+  actualizarIAUnidades();
+}
+
+// ─── RESUMEN ─────────────────────────────────────────────────────────────────
+
+function renderResumen() {
+  const now = new Date();
+  document.getElementById('resumen-fecha').textContent =
+    now.toLocaleDateString('es-AR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  const totalClases = state.materias.reduce((a,m) => a + m.clases.length, 0);
+  const progProm = state.materias.length
+    ? Math.round(state.materias.reduce((a,m) => a + calcPct(m), 0) / state.materias.length)
+    : 0;
+  const semanasSet = new Set(state.materias.flatMap(m => m.clases.map(c => c.semana)));
+
+  document.getElementById('resumen-metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">Materias</div><div class="metric-value">${state.materias.length}</div><div class="metric-sub">cátedras activas</div></div>
+    <div class="metric"><div class="metric-label">Clases registradas</div><div class="metric-value">${totalClases}</div><div class="metric-sub">en total</div></div>
+    <div class="metric"><div class="metric-label">Semanas cursadas</div><div class="metric-value">${semanasSet.size}</div><div class="metric-sub">con actividad</div></div>
+    <div class="metric"><div class="metric-label">Progreso promedio</div><div class="metric-value">${progProm}%</div><div class="metric-sub">cobertura de unidades</div></div>
+  `;
+
+  document.getElementById('resumen-materias').innerHTML = state.materias.map(m => matCard(m)).join('');
+}
+
+function matCard(m) {
+  const pct = calcPct(m);
+  const cls = pct === 0 ? 'pct-zero' : pct < 50 ? 'pct-warn' : 'pct-ok';
+  return `<div class="materia-card" onclick="irDetalle(${m.id})">
+    <div class="mat-header">
+      <div class="mat-nombre">${m.nombre}</div>
+      <div class="mat-pct ${cls}">${pct}%</div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="mat-meta">
+      <span>${m.nivel}</span>
+      <span>${m.clases.length} clases</span>
+      <span>${m.semanasTotales} semanas</span>
+    </div>
+  </div>`;
+}
+
+function irDetalle(id) {
+  state._selectedMateria = id;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelector('[onclick*="detalle"]').classList.add('active');
+  showPage('detalle', null);
+  const sel = document.getElementById('det-materia');
+  if (sel) { sel.value = id; renderDetalle(); }
+}
+
+// ─── MATERIAS PAGE ───────────────────────────────────────────────────────────
+
+function renderMaterias() {
+  document.getElementById('lista-materias-page').innerHTML =
+    state.materias.map(m => matCard(m)).join('') +
+    `<div class="materia-card" style="border-style:dashed; cursor:pointer; display:flex; align-items:center; justify-content:center; min-height:120px; color:var(--text-hint); font-size:14px; gap:8px;" onclick="abrirModalMateria()">
+      <span style="font-size:20px;">+</span> Agregar materia
+    </div>`;
+}
+
+// ─── MODAL MATERIA ────────────────────────────────────────────────────────────
+
+function abrirModalMateria() {
+  document.getElementById('modal-materia').classList.add('open');
+}
+function cerrarModal() {
+  document.getElementById('modal-materia').classList.remove('open');
+  ['m-nombre','m-nivel','m-temas'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-semanas').value = '16';
+  document.getElementById('m-unidades').value = '';
+}
+
+function guardarMateria() {
+  const nombre = document.getElementById('m-nombre').value.trim();
+  if (!nombre) { toast('Escribí el nombre de la materia'); return; }
+  const nivel = document.getElementById('m-nivel').value.trim() || '4° año';
+  const semanas = parseInt(document.getElementById('m-semanas').value) || 16;
+  const unidadesRaw = document.getElementById('m-unidades').value.trim();
+  const temasRaw = document.getElementById('m-temas').value.trim();
+
+  const unidadesNombres = unidadesRaw
+    ? unidadesRaw.split('\n').filter(u => u.trim())
+    : ['Unidad I', 'Unidad II', 'Unidad III', 'Unidad IV'];
+
+  const temasLineas = temasRaw ? temasRaw.split('\n') : [];
+
+  const unidades = unidadesNombres.map((u, i) => ({
+    nombre: u.trim(),
+    temas: temasLineas[i] ? temasLineas[i].split(',').map(t => t.trim()).filter(Boolean) : []
+  }));
+
+  const newId = Math.max(...state.materias.map(m => m.id), 0) + 1;
+  state.materias.push({ id: newId, nombre, nivel, semanasTotales: semanas, unidades, clases: [] });
+  saveState();
+  cerrarModal();
+  renderMaterias();
+  renderResumen();
+  toast('Materia guardada');
+}
+
+// ─── REGISTRO ────────────────────────────────────────────────────────────────
+
+function actualizarRegUnidades() {
+  const matId = document.getElementById('reg-materia')?.value;
+  const m = getMateria(matId);
+  const sel = document.getElementById('reg-unidad');
+  if (!sel || !m) return;
+  sel.innerHTML = m.unidades.map((u, i) => `<option value="${i}">${u.nombre}</option>`).join('');
+}
+
+function registrarClase() {
+  const matId = parseInt(document.getElementById('reg-materia').value);
+  const semana = parseInt(document.getElementById('reg-semana').value);
+  const modalidad = document.getElementById('reg-modalidad').value;
+  const unidadIdx = parseInt(document.getElementById('reg-unidad').value);
+  const tema = document.getElementById('reg-tema').value.trim();
+  const material = document.getElementById('reg-material').value.trim();
+  const obs = document.getElementById('reg-obs').value.trim();
+  const fecha = document.getElementById('reg-fecha').value.trim();
+  const m = getMateria(matId);
+  if (!m) return;
+  m.clases.push({ semana, modalidad, unidadIdx, tema, material, obs, fecha, ts: Date.now() });
+  saveState();
+  ['reg-tema','reg-material','reg-obs','reg-fecha'].forEach(id => document.getElementById(id).value = '');
+  const ok = document.getElementById('reg-ok');
+  ok.style.opacity = '1';
+  setTimeout(() => ok.style.opacity = '0', 2000);
+  toast('Clase registrada ✓');
+}
+
+// ─── DETALLE ─────────────────────────────────────────────────────────────────
+
+function renderDetalle() {
+  const matId = document.getElementById('det-materia')?.value;
+  const m = getMateria(matId);
+  const body = document.getElementById('detalle-body');
+  if (!m) { body.innerHTML = '<div class="empty">Seleccioná una materia.</div>'; return; }
+
+  const unidadesHTML = m.unidades.map((u, i) => {
+    const clasesU = m.clases.filter(c => c.unidadIdx === i);
+    const temasDados = clasesU.map(c => c.tema).filter(Boolean);
+    return `<div class="unidad-row">
+      <div class="unidad-circle">${i+1}</div>
+      <div class="unidad-body">
+        <div class="unidad-name">${u.nombre}</div>
+        <div class="unidad-temas">
+          Contenidos: ${u.temas.length ? u.temas.map(t => `<span class="tag">${t}</span>`).join('') : '<span style="color:var(--text-hint);font-size:12px;">sin temas cargados</span>'}
+        </div>
+        ${temasDados.length ? `<div style="margin-top:6px; font-size:12px; color:var(--text-muted);">Dado: ${temasDados.join(' · ')}</div>` : ''}
+      </div>
+      <div class="unidad-clases">${clasesU.length} clase${clasesU.length !== 1 ? 's' : ''}</div>
+    </div>`;
+  }).join('');
+
+  const sorted = [...m.clases].sort((a,b) => a.semana - b.semana);
+  const clasesHTML = sorted.length
+    ? sorted.map(c => `<div class="clase-item">
+        <div class="clase-week">Sem. ${c.semana}${c.fecha ? '<br><span style="font-size:10px;">' + c.fecha + '</span>' : ''}</div>
+        <div class="clase-body">
+          <div class="clase-tema">${c.tema || '(sin tema)'}</div>
+          ${c.material ? `<div class="clase-mat">📎 ${c.material}</div>` : ''}
+          ${c.obs ? `<div class="clase-mat" style="color:var(--amber-dark);">💬 ${c.obs}</div>` : ''}
+        </div>
+        <span class="clase-badge badge-${c.modalidad}">${c.modalidad}</span>
+      </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">📋</div>No hay clases registradas todavía.<br>Usá "Registrar clase" para empezar.</div>';
+
+  body.innerHTML = `
+    <div class="card" style="margin-bottom:20px;">
+      <div class="section-title" style="margin-bottom:14px;">Unidades y contenidos</div>
+      <div class="unidades-list">${unidadesHTML}</div>
+    </div>
+    <div>
+      <div class="section-header">
+        <span class="section-title">Clases registradas (${m.clases.length})</span>
+      </div>
+      ${clasesHTML}
+    </div>`;
+}
+
+// ─── IA ───────────────────────────────────────────────────────────────────────
+
+function actualizarIAUnidades() {
+  const matId = document.getElementById('ia-materia')?.value;
+  const m = getMateria(matId);
+  const sel = document.getElementById('ia-unidades');
+  if (!sel || !m) return;
+  sel.innerHTML = m.unidades.map((u, i) => `<option value="${i}">${u.nombre}</option>`).join('');
+}
+
+let lastIAPrompt = '';
+
+async function generarIA() {
+  const matId = document.getElementById('ia-materia').value;
+  const m = getMateria(matId);
+  const tipo = document.getElementById('ia-tipo').value;
+  const idxSel = Array.from(document.getElementById('ia-unidades').selectedOptions).map(o => parseInt(o.value));
+  const contexto = document.getElementById('ia-contexto').value.trim();
+
+  if (!m || !idxSel.length) { toast('Seleccioná al menos una unidad'); return; }
+
+  const unidades = idxSel.map(i => m.unidades[i]);
+  const temasDados = [...new Set(m.clases.filter(c => idxSel.includes(c.unidadIdx)).map(c => c.tema).filter(Boolean))];
+
+  const tipos = {
+    examen: 'un examen parcial escrito con al menos 4 preguntas variadas (conceptuales, de análisis y de aplicación práctica)',
+    tarea: 'una consigna de tarea domiciliaria con instrucciones claras, criterios de entrega y producto esperado',
+    cierre: 'un cierre de unidad que sintetice los contenidos trabajados, integre los ejes y proponga preguntas de reflexión metacognitiva',
+    actividad: 'una actividad completa de clase (presencial o virtual) con pasos detallados, tiempo estimado y recursos',
+    rubrica: 'una rúbrica de evaluación con criterios claros, indicadores observables y al menos 3 niveles de desempeño',
+    planificacion: 'una planificación de clase con objetivos, secuencia de actividades, recursos y evaluación formativa'
+  };
+
+  const prompt = `Sos un experto en formación docente y didáctica de la lengua a nivel terciario.
+
+Materia: ${m.nombre}
+Nivel: ${m.nivel}
+${unidades.map(u => `Unidad: ${u.nombre}\nContenidos: ${u.temas.join(', ')}`).join('\n')}
+${temasDados.length ? `Temas efectivamente trabajados en clase: ${temasDados.join(', ')}` : ''}
+${contexto ? `Indicaciones del docente: ${contexto}` : ''}
+
+Generá ${tipos[tipo]}.
+Escribí directamente el resultado sin introducción ni cierre genérico. Usá numeración y formato claro. El registro debe ser académico pero accesible para estudiantes de profesorado.`;
+
+  lastIAPrompt = prompt;
+
+  const wrap = document.getElementById('ia-resultado-wrap');
+  const out = document.getElementById('ia-output');
+  wrap.style.display = 'block';
+  out.className = 'ia-box loading';
+  out.textContent = 'Generando con IA, aguardá un momento...';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'No se pudo generar. Intentá de nuevo.';
+    out.className = 'ia-box';
+    out.textContent = text;
+  } catch {
+    out.className = 'ia-box';
+    out.textContent = 'Error de conexión. Verificá tu conexión a internet e intentá de nuevo.';
+  }
+}
+
+async function modificarIA() {
+  const mod = document.getElementById('ia-mod').value.trim();
+  const out = document.getElementById('ia-output');
+  if (!mod || !lastIAPrompt) { toast('Escribí qué querés modificar'); return; }
+
+  const prevText = out.textContent;
+  out.className = 'ia-box loading';
+  out.textContent = 'Modificando...';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [
+          { role: 'user', content: lastIAPrompt },
+          { role: 'assistant', content: prevText },
+          { role: 'user', content: `Por favor, modificá el resultado anterior: ${mod}` }
+        ]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text || '').join('') || prevText;
+    out.className = 'ia-box';
+    out.textContent = text;
+  } catch {
+    out.className = 'ia-box';
+    out.textContent = prevText;
+    toast('Error al modificar');
+  }
+}
+
+function copiarIA() {
+  navigator.clipboard.writeText(document.getElementById('ia-output').textContent)
+    .then(() => toast('Copiado al portapapeles'))
+    .catch(() => toast('No se pudo copiar'));
+}
+
+// ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
+
+function exportarDatos() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `panel-docente-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Datos exportados');
+}
+
+function importarDatos(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.materias) {
+        state = imported;
+        saveState();
+        renderResumen();
+        toast('Datos importados correctamente');
+      } else {
+        toast('Archivo no válido');
+      }
+    } catch { toast('Error al leer el archivo'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+renderResumen();
+populateSelects();
+</script>
+</body>
+</html>
