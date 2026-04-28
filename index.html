@@ -442,6 +442,9 @@
         <span class="nav-icon">≡</span> Ver detalle
       </button>
       <div class="nav-section-label">Herramientas</div>
+      <button class="nav-item" onclick="showPage('importar', this)">
+        <span class="nav-icon">⬆</span> Importar Moodle
+      </button>
       <button class="nav-item" onclick="showPage('ia', this)">
         <span class="nav-icon">✦</span> Generador IA
       </button>
@@ -544,6 +547,70 @@
         <select id="det-materia" onchange="renderDetalle()"></select>
       </div>
       <div id="detalle-body"></div>
+    </div>
+
+    <!-- IMPORTAR MOODLE -->
+    <div id="page-importar" class="page">
+      <h1 class="page-title">Importar desde Moodle</h1>
+      <p class="page-subtitle">Subí cualquier archivo descargado de Moodle y la IA extrae automáticamente las clases, tareas y actividades.</p>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-title" style="margin-bottom:14px;">Formatos aceptados</div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap:10px;">
+          <div style="background:var(--gray-50); border-radius:var(--radius-sm); padding:12px; font-size:13px;"><div style="font-weight:500; margin-bottom:3px;">HTML / Web</div><div style="color:var(--text-hint);">Páginas guardadas del curso, informes de actividad</div></div>
+          <div style="background:var(--gray-50); border-radius:var(--radius-sm); padding:12px; font-size:13px;"><div style="font-weight:500; margin-bottom:3px;">Excel / CSV</div><div style="color:var(--text-hint);">Libro de calificaciones, registros exportados</div></div>
+          <div style="background:var(--gray-50); border-radius:var(--radius-sm); padding:12px; font-size:13px;"><div style="font-weight:500; margin-bottom:3px;">Word / TXT</div><div style="color:var(--text-hint);">Planificaciones, cuadernos de clases</div></div>
+          <div style="background:var(--gray-50); border-radius:var(--radius-sm); padding:12px; font-size:13px;"><div style="font-weight:500; margin-bottom:3px;">PDF</div><div style="color:var(--text-hint);">Programas, informes, materiales exportados</div></div>
+          <div style="background:var(--gray-50); border-radius:var(--radius-sm); padding:12px; font-size:13px;"><div style="font-weight:500; margin-bottom:3px;">PowerPoint</div><div style="color:var(--text-hint);">Extrae los temas de cada presentación</div></div>
+          <div style="background:var(--gray-50); border-radius:var(--radius-sm); padding:12px; font-size:13px;"><div style="font-weight:500; margin-bottom:3px;">Texto libre</div><div style="color:var(--text-hint);">Pegá lo que diste semana a semana</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="form-group">
+          <label>Materia</label>
+          <select id="imp-materia"></select>
+        </div>
+
+        <div style="border:2px dashed var(--border-strong); border-radius:var(--radius); padding:32px; text-align:center; margin-bottom:16px; cursor:pointer; transition:border-color 0.2s;" id="drop-zone"
+          onclick="document.getElementById('imp-file').click()"
+          ondragover="event.preventDefault(); this.style.borderColor='var(--green)'"
+          ondragleave="this.style.borderColor='var(--border-strong)'"
+          ondrop="handleDrop(event)">
+          <div style="font-size:24px; margin-bottom:10px; color:var(--text-hint);">&#8679;</div>
+          <div style="font-size:14px; font-weight:500;">Arrastrá un archivo acá o hacé clic para buscar</div>
+          <div style="font-size:12px; color:var(--text-hint); margin-top:6px;">HTML, CSV, XLSX, TXT, DOCX, PDF, PPTX — hasta 5 MB</div>
+          <input type="file" id="imp-file" style="display:none" accept=".html,.htm,.csv,.xlsx,.xls,.txt,.doc,.docx,.pdf,.pptx,.ppt" onchange="handleFileSelect(event)">
+        </div>
+
+        <div id="imp-file-info" style="display:none; background:var(--green-light); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:16px; font-size:13px; color:var(--green-dark); align-items:center; gap:10px;">
+          <span id="imp-file-name" style="flex:1;"></span>
+          <button onclick="limpiarArchivo()" style="background:none; border:none; cursor:pointer; color:var(--green-dark); font-size:18px; line-height:1;">x</button>
+        </div>
+
+        <div class="form-group">
+          <label>O pegá texto directamente (opcional / complementario al archivo)</label>
+          <textarea id="imp-texto" style="min-height:120px;" placeholder="Ej:&#10;Semana 1 - 12/03: Introducción. Presenté el programa, di PPT de presentación.&#10;Semana 2 - 19/03: Tipos de escucha. Actividad presencial con audio.&#10;Semana 3 - 26/03: Virtual. Oralidad y géneros orales."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Aclaraciones para la IA (opcional)</label>
+          <input type="text" id="imp-aclaraciones" placeholder="Ej: Las semanas impares son presenciales. El curso empezó el 12 de marzo.">
+        </div>
+
+        <button class="btn btn-primary" onclick="procesarImportacion()">Analizar con IA y extraer clases</button>
+      </div>
+
+      <div id="imp-resultado-wrap" style="display:none; margin-top:20px;">
+        <div class="card">
+          <div class="section-title" style="margin-bottom:14px;">Clases detectadas — revisá antes de importar</div>
+          <div id="imp-preview"></div>
+          <div style="display:flex; gap:10px; margin-top:16px;">
+            <button class="btn btn-primary" onclick="confirmarImportacion()">Importar todo al panel</button>
+            <button class="btn" onclick="document.getElementById('imp-resultado-wrap').style.display='none'">Descartar</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- IA -->
@@ -676,7 +743,7 @@ function showPage(name, btn) {
   if (name === 'materias') renderMaterias();
   if (name === 'detalle') renderDetalle();
   if (name === 'registro') actualizarRegUnidades();
-  if (name === 'ia') actualizarIAUnidades();
+  if (name === 'importar') { populateSelects(); }
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -697,7 +764,7 @@ function toast(msg) {
 }
 
 function populateSelects() {
-  ['reg-materia','det-materia','ia-materia'].forEach(id => {
+  ['reg-materia','det-materia','ia-materia','imp-materia'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
     const prev = sel.value;
@@ -1032,6 +1099,175 @@ function importarDatos(event) {
   };
   reader.readAsText(file);
   event.target.value = '';
+}
+
+// ─── IMPORTAR MOODLE ─────────────────────────────────────────────────────────
+
+let impFileData = null;
+let impClasesDetectadas = [];
+
+function handleDrop(event) {
+  event.preventDefault();
+  document.getElementById('drop-zone').style.borderColor = 'var(--border-strong)';
+  const file = event.dataTransfer.files[0];
+  if (file) procesarArchivo(file);
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) procesarArchivo(file);
+  event.target.value = '';
+}
+
+function procesarArchivo(file) {
+  if (file.size > 5 * 1024 * 1024) { toast('El archivo supera los 5 MB'); return; }
+  const info = document.getElementById('imp-file-info');
+  document.getElementById('imp-file-name').textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+  info.style.display = 'flex';
+
+  const reader = new FileReader();
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (['xlsx','xls'].includes(ext)) {
+    reader.onload = e => {
+      impFileData = { tipo: 'binario_base64', ext, base64: btoa(String.fromCharCode(...new Uint8Array(e.target.result))), nombre: file.name };
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (['pdf','pptx','ppt','docx','doc'].includes(ext)) {
+    reader.onload = e => {
+      const arr = new Uint8Array(e.target.result);
+      let binary = '';
+      for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]);
+      impFileData = { tipo: 'binario_base64', ext, base64: btoa(binary), nombre: file.name };
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.onload = e => {
+      impFileData = { tipo: 'texto', ext, contenido: e.target.result.slice(0, 18000), nombre: file.name };
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+}
+
+function limpiarArchivo() {
+  impFileData = null;
+  document.getElementById('imp-file-info').style.display = 'none';
+  document.getElementById('imp-file-name').textContent = '';
+}
+
+async function procesarImportacion() {
+  const matId = document.getElementById('imp-materia').value;
+  const m = getMateria(matId);
+  const textoLibre = document.getElementById('imp-texto').value.trim();
+  const aclaraciones = document.getElementById('imp-aclaraciones').value.trim();
+
+  if (!impFileData && !textoLibre) { toast('Subí un archivo o pegá texto para analizar'); return; }
+
+  const wrap = document.getElementById('imp-resultado-wrap');
+  const preview = document.getElementById('imp-preview');
+  wrap.style.display = 'block';
+  preview.innerHTML = '<div style="color:var(--text-hint); font-size:14px; padding:20px 0;">Analizando con IA, aguardá un momento...</div>';
+
+  const unidadesDesc = m.unidades.map((u, i) => `${i}: ${u.nombre} (temas: ${u.temas.join(', ')})`).join('\n');
+
+  const systemPrompt = `Sos un asistente que analiza contenido educativo y extrae un registro estructurado de clases dictadas.
+Devolvé ÚNICAMENTE un JSON válido, sin texto adicional, sin markdown, sin explicaciones.
+El JSON debe tener esta estructura exacta:
+{
+  "clases": [
+    {
+      "semana": 1,
+      "fecha": "12/03/2026",
+      "modalidad": "presencial",
+      "unidadIdx": 0,
+      "tema": "Texto descriptivo del tema dado",
+      "material": "Material o actividad si se menciona",
+      "obs": "Observaciones si las hay"
+    }
+  ]
+}
+Reglas:
+- modalidad debe ser exactamente "presencial", "virtual" o "asincronica"
+- unidadIdx debe ser el número (0, 1, 2, 3) de la unidad más relacionada al tema
+- Si no hay fecha clara, dejá el campo vacío
+- Si no hay observaciones, dejá obs vacío
+- Extraé todas las clases que puedas identificar`;
+
+  const contenidoUsuario = `Materia: ${m.nombre}
+Unidades disponibles:
+${unidadesDesc}
+${aclaraciones ? 'Aclaraciones del docente: ' + aclaraciones : ''}
+
+${impFileData ? 'Contenido del archivo (' + impFileData.nombre + '):\n' + (impFileData.tipo === 'texto' ? impFileData.contenido : '[Archivo binario: ' + impFileData.ext + ' — extraé lo que puedas del nombre y contexto]') : ''}
+${textoLibre ? '\nTexto ingresado por el docente:\n' + textoLibre : ''}`;
+
+  try {
+    const messages = [{ role: 'user', content: contenidoUsuario }];
+
+    if (impFileData && impFileData.tipo === 'binario_base64' && ['pdf','docx','doc'].includes(impFileData.ext)) {
+      const mediaTypes = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', doc: 'application/msword' };
+      messages[0].content = [
+        { type: 'document', source: { type: 'base64', media_type: mediaTypes[impFileData.ext] || 'application/octet-stream', data: impFileData.base64 } },
+        { type: 'text', text: contenidoUsuario }
+      ];
+    }
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages
+      })
+    });
+
+    const data = await resp.json();
+    const raw = data.content?.map(b => b.text || '').join('') || '{}';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    impClasesDetectadas = parsed.clases || [];
+
+    if (!impClasesDetectadas.length) {
+      preview.innerHTML = '<div style="color:var(--text-hint); padding:20px 0; font-size:14px;">No se detectaron clases en el contenido. Intentá agregar más texto descriptivo o aclaraciones.</div>';
+      return;
+    }
+
+    preview.innerHTML = impClasesDetectadas.map((c, i) => `
+      <div style="background:var(--gray-50); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:8px; font-size:13px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+          <span style="font-weight:500;">Semana ${c.semana}</span>
+          ${c.fecha ? '<span style="color:var(--text-hint);">' + c.fecha + '</span>' : ''}
+          <span class="clase-badge badge-${c.modalidad}" style="font-size:11px; padding:2px 8px; border-radius:20px; font-weight:500;">${c.modalidad}</span>
+          <span style="color:var(--green-dark); font-size:11px;">${m.unidades[c.unidadIdx]?.nombre?.split(':')[0] || 'Unidad ' + (c.unidadIdx+1)}</span>
+        </div>
+        <div style="color:var(--text);">${c.tema}</div>
+        ${c.material ? '<div style="color:var(--text-hint); margin-top:3px;">Material: ' + c.material + '</div>' : ''}
+        ${c.obs ? '<div style="color:var(--amber-dark); margin-top:3px;">' + c.obs + '</div>' : ''}
+      </div>`).join('') +
+      `<div style="font-size:13px; color:var(--text-muted); margin-top:8px;">${impClasesDetectadas.length} clase${impClasesDetectadas.length !== 1 ? 's' : ''} detectada${impClasesDetectadas.length !== 1 ? 's' : ''}.</div>`;
+
+  } catch(e) {
+    preview.innerHTML = '<div style="color:var(--coral); font-size:14px; padding:20px 0;">Error al procesar. Intentá con texto pegado directamente si el archivo es complejo.</div>';
+  }
+}
+
+function confirmarImportacion() {
+  const matId = document.getElementById('imp-materia').value;
+  const m = getMateria(matId);
+  if (!m || !impClasesDetectadas.length) return;
+  impClasesDetectadas.forEach(c => {
+    m.clases.push({ ...c, ts: Date.now() });
+  });
+  saveState();
+  const cant = m.clases.length;
+  impClasesDetectadas = [];
+  document.getElementById('imp-resultado-wrap').style.display = 'none';
+  limpiarArchivo();
+  document.getElementById('imp-texto').value = '';
+  toast('Clases importadas correctamente ✓');
+  renderResumen();
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
